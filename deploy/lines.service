@@ -36,12 +36,13 @@ StateDirectoryMode=0700
 UMask=0077
 
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-# Lines fetches Google Docs shared by link, so it reaches the internet, but
-# never this network, the tailnet, link-local or anything private. (An
-# address both lists name is allowed: localhost.) DNS is resolved's, on
-# localhost.
+# Lines fetches Google Docs shared by link (gdoc.py: Google's hosts only),
+# so it reaches the internet. Denied: private IPv4, the tailnet (CGNAT and
+# its ULA IPv6), link-local, multicast and NAT64. Not denied: a LAN device's
+# public IPv6 address, if the LAN hands those out. (An address both lists
+# name is allowed: localhost.) DNS is resolved's, on localhost.
 IPAddressAllow=localhost
-IPAddressDeny=link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7
+IPAddressDeny=link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7 64:ff9b::/96
 SocketBindAllow=tcp:8794
 SocketBindDeny=any
 

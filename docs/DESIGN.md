@@ -96,8 +96,17 @@ untrusted input: parsed in the app's sandboxed service, rendered as text
 only, and her MCP entry is `untrusted: true`, so it reaches her model inside
 the fence. The Google Docs fetch takes only the document's id from the link
 and builds the address itself; redirects are followed only to Google's
-document hosts over https. The unit reaches the internet for it, never the
-LAN, the tailnet or anything private.
+document hosts over https. The unit reaches the internet for it; private
+IPv4, the tailnet, link-local, multicast and NAT64 stay denied (a LAN
+device's public IPv6 address isn't).
+
+**The trade-off, from the security review (2026-11-05):** with `IPAddressDeny=any`
+even a compromised Lines couldn't reach out. Now a memory bug in MuPDF,
+triggered by a crafted PDF, could send what Lines holds to the internet:
+scripts, scores and its own keys. They guard nothing but Lines (its own
+database, and the web key and token Serafina holds anyway), and nothing in
+it is personal, so it's accepted. Parsing in a separate process with no
+network would close it (TODO).
 
 ## Not doing (yet)
 
