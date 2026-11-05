@@ -1,0 +1,15 @@
+#!/bin/sh
+# Refuse to commit databases, secrets and media (serafina/docs/APPS.md rule 9).
+# Personal data never belongs in the repo. Made-up test files go under
+# tests/fixtures/; the app's own icons under frontend/public/.
+#
+# Enabled per clone with: git config core.hooksPath .githooks
+bad=$(git diff --cached --name-only --diff-filter=ACR |
+    grep -iE '(\.(png|jpe?g|gif|webp|heic|heif|bmp|tiff?|avif|mp4|m4v|mov|webm|mkv|avi|pdf|db|db-wal|db-shm|sqlite3?|age)|(^|/)\.env)$' |
+    grep -vE '(^|/)tests/fixtures/|^frontend/public/' || true)
+if [ -n "$bad" ]; then
+    echo "pre-commit: refusing to commit what look like media, databases or secrets:" >&2
+    echo "$bad" | sed 's/^/  /' >&2
+    echo "Made-up test files go under tests/fixtures/; the app's icons under frontend/public/." >&2
+    exit 1
+fi

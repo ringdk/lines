@@ -1,0 +1,61 @@
+#!/bin/sh
+# lines-admin: run Lines's CLI as its own user, with its passphrase
+# and settings. Installed root-owned at /usr/local/sbin.
+#
+#   sudo lines-admin init                 # secrets.age (and its passphrase), once
+#   sudo lines-admin web-key | tail -1    # the key Serafina's app proxy signs with
+#   sudo lines-admin mcp-token | tail -1  # the token her MCP client sends
+#   sudo lines-admin secrets names
+#
+# It needs a real sudo password on purpose: Serafina runs as danring, so
+# nothing danring can do without one may read Lines's keys.
+set -eu
+
+BIN=/opt/lines/.venv/bin/lines
+PASSFILE=/etc/lines/passphrase
+DATA=/var/lib/lines
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "lines-admin: run it with sudo" >&2
+    exit 1
+fi
+
+die() {
+    echo "lines-admin: $*" >&2
+    exit 1
+}
+
+id lines >/dev/null 2>&1 || die "no 'lines' user yet (docs/deploy-astarte.md, step 1)"
+# lines.service's StateDirectory, made here so nothing has to start first.
+install -d -o lines -g lines -m 0700 "$DATA"
+
+# Exported, never passed as an argument: arguments are visible to every user
+# in `ps`, the environment only to the process's own user and root.
+load_passphrase() {
+    LINES_AGE_PASSPHRASE="$(cat "$PASSFILE" 2>/dev/null || true)"
+    export LINES_AGE_PASSPHRASE
+}
+load_passphrase
+export LINES_DATA_DIR="$DATA" PYTHONDONTWRITEBYTECODE=1
+
+as_app() {
+    runuser -u lines -g lines -- sh -c 'cd /opt/lines && exec "$0" "$@"' "$BIN" "$@"
+}
+
+init() {
+    if [ ! -s "$PASSFILE" ]; then
+        install -d -o root -g root -m 0755 /etc/lines
+        (umask 077 && head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' > "$PASSFILE")
+        echo "Made $PASSFILE (root only; systemd hands it to lines.service)."
+        load_passphrase
+    fi
+    as_app secrets init
+}
+
+case "${1:-}" in
+    init) init ;;
+    web-key) as_app secrets web-key ;;
+    mcp-token) as_app secrets mcp-token ;;
+    secrets) shift; as_app secrets "$@" ;;
+    *) echo "usage: lines-admin init | web-key | mcp-token | secrets <names|set NAME>" >&2; exit 2 ;;
+esac

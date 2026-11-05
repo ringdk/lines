@@ -1,0 +1,71 @@
+# /etc/systemd/system/lines.service
+# Lines, as its own user, from /opt/lines (docs/deploy-astarte.md).
+# A light app (serafina/docs/APPS.md, "Light apps"): it keeps nothing
+# personal, so its checkout is danring's and deploys need no signing key.
+# What this unit is for doesn't change: the app can't write its own code or
+# reach anything it isn't allowed to. Its keys guard only the app itself:
+# danring writes the code that reads them.
+#
+# One listener, loopback :8794, for Serafina only: her app proxy (/ui, signed
+# identity) and her MCP client (/mcp, bearer token). Whatever it calls is on
+# this box too; its README says what.
+[Unit]
+Description=Lines: an app beside Serafina (loopback :8794)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lines
+Group=lines
+# this app's own: where its settings come from
+EnvironmentFile=/etc/lines/lines.env
+Environment=LINES_DATA_DIR=/var/lib/lines
+# end of this app's own
+Environment=PYTHONDONTWRITEBYTECODE=1
+# A root-only file; systemd hands it to this service alone, never through the
+# environment or a command line.
+LoadCredential=passphrase:/etc/lines/passphrase
+WorkingDirectory=/opt/lines
+ExecStart=/opt/lines/.venv/bin/lines serve
+Restart=on-failure
+RestartSec=5
+
+StateDirectory=lines
+StateDirectoryMode=0700
+UMask=0077
+
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+IPAddressDeny=any
+IPAddressAllow=localhost
+SocketBindAllow=tcp:8794
+SocketBindDeny=any
+
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+# The media disk and the other apps' backups on it aren't this app's.
+InaccessiblePaths=-/mnt/media
+
+NoNewPrivileges=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+# /etc/systemd/system/lines-backup.timer
+[Unit]
+Description=Lines: hourly encrypted copy of the database
+
+[Timer]
+OnCalendar=hourly
+RandomizedDelaySec=5min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

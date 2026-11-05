@@ -1,0 +1,53 @@
+# /etc/systemd/system/lines-backup.service
+# An encrypted copy of Lines's database on the backup disk, hourly
+# (lines-backup.timer), only when it has changed: <db>-latest.db, one
+# dated copy a day (never removed), and the secrets.age that opens them. Made
+# through SQLite under the same key, so what lands on the disk is ciphertext.
+# No network.
+[Unit]
+Description=Lines: encrypted copy of the database to the backup disk
+RequiresMountsFor=/mnt/media
+
+[Service]
+Type=oneshot
+User=lines
+Group=lines
+# The media disk is exFAT, with no Unix ownership: it's mounted group-writable
+# for `media`, and the backup directory is made there once (docs/deploy-astarte.md).
+SupplementaryGroups=media
+# this app's own: where its settings come from
+EnvironmentFile=/etc/lines/lines.env
+Environment=LINES_DATA_DIR=/var/lib/lines
+# end of this app's own
+Environment=PYTHONDONTWRITEBYTECODE=1
+LoadCredential=passphrase:/etc/lines/passphrase
+ExecStart=/opt/lines/.venv/bin/lines backup /mnt/media/lines-backup
+UMask=0077
+# Its own state (the database's -shm while it reads) and the backup directory.
+ReadWritePaths=/var/lib/lines /mnt/media/lines-backup
+
+PrivateNetwork=yes
+RestrictAddressFamilies=AF_UNIX
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+CapabilityBoundingSet=
+AmbientCapabilities=
