@@ -25,10 +25,11 @@ user units keep running while you're logged out because lingering is on
 cd ~/workspace && git clone git@github.com:ringdk/lines.git
 cd ~/workspace/lines && git config core.hooksPath .githooks
 
-# Its settings and a new passphrase, in a file only you can read.
-install -d -m 0700 ~/.config/lines
-(umask 077; sed "s|^LINES_AGE_PASSPHRASE=.*|LINES_AGE_PASSPHRASE=$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')|" \
-  deploy/lines.env.example > ~/.config/lines/env)
+# Its settings and a new passphrase, in a file only you can read. printf is
+# the shell's own, so the passphrase is never on a command line `ps` shows.
+install -d -m 0700 ~/.config/lines ~/.local/share/lines
+(umask 077; { grep -v '^LINES_AGE_PASSPHRASE=' deploy/lines.env.example
+  printf 'LINES_AGE_PASSPHRASE=%s\n' "$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"; } > ~/.config/lines/env)
 
 # Build it, and make secrets.age with a new database key.
 deploy/lines-update

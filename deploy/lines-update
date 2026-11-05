@@ -57,11 +57,22 @@ for extra in $EXTRAS; do
 done
 
 "$UV" sync --quiet --frozen --no-dev $extra_args --python 3.12
-(cd frontend && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error && npm run --silent build)
-if [ ! -f frontend/dist/index.html ] || [ -n "$(find frontend/dist ! -type f ! -type d -print -quit)" ]; then
+
+# Built in a throwaway directory and swapped in whole, so a failed build
+# leaves the running app's pages as they were.
+build=$(mktemp -d "${TMPDIR:-/tmp}/lines-build.XXXXXX")
+trap 'rm -rf "$build"' EXIT
+cp -R frontend/. "$build/"
+rm -rf "$build/node_modules" "$build/dist"
+(cd "$build" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error && npm run --silent build)
+if [ ! -f "$build/dist/index.html" ] || [ -n "$(find "$build/dist" ! -type f ! -type d -print -quit)" ]; then
     echo "lines-update: the frontend build left no page, or something other than plain files" >&2
     exit 1
 fi
+rm -rf frontend/dist.new
+cp -R "$build/dist" frontend/dist.new
+rm -rf frontend/dist
+mv frontend/dist.new frontend/dist
 note "built $(git rev-parse --short HEAD)"
 
 # Restart and wait until it answers, so whatever runs next doesn't race it.

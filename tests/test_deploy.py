@@ -112,10 +112,14 @@ def test_it_wont_deploy_what_isnt_committed(box):
 
 
 @needs_sh
-def test_a_build_that_leaves_no_page_is_refused(tmp_path):
+def test_a_build_that_leaves_no_page_is_refused_and_the_pages_stay(tmp_path):
     box = Box(tmp_path, build="mkdir -p dist")
+    served = box.app / "frontend" / "dist" / "index.html"
+    served.parent.mkdir()
+    served.write_text("the pages being served")
     r = box.deploy()
     assert r.returncode == 1 and "no page" in r.stderr
+    assert served.read_text() == "the pages being served"
 
 
 @needs_sh
