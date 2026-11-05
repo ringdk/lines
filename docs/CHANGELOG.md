@@ -4,6 +4,17 @@ Newest first. Each entry has a date and an `rN`; anything someone can see or
 do differently also gets a line in [WHATS_NEW.md](WHATS_NEW.md) with the same
 date and `rN`.
 
+## 2026-11-05 — r2
+
+- Runs as you, under a systemd user unit, from `~/workspace/lines`: no
+  system user, no `/opt`, no sudo to install, deploy or restart (Serafina's
+  r282 light kit). `deploy/lines-update` builds `main` as checked out and
+  restarts the unit; settings and passphrase in `~/.config/lines/env`, data
+  in `~/.local/share/lines`. `lines-admin` and the restart sudoers rule are
+  gone, and so is the unit's network deny list (and its deviation note): a
+  user unit can't hold one, and the app now has exactly Serafina's exposure.
+- The template's own pieces are unchanged; `app_template.py check` is clean.
+
 ## 2026-11-05 — r1
 
 - Made from Serafina's app template as a light app (`app_template.py new

@@ -16,8 +16,9 @@ Serafina's panel beside it) moves the rehearsal and coaches between runs.
 
 It keeps nothing personal: scripts (someone else's writing, for practice)
 and how well each line is known. So it's a **light** app (APPS.md, "Light
-apps"): it deploys from Dan's checkout with no signing key. If it ever needs
-to keep something personal, it becomes sealed first.
+apps"): it runs as danring under a systemd user unit from
+`~/workspace/lines`, with no system user, no signing key and no sudo. If it
+ever needs to keep something personal, it becomes sealed first.
 
 ## What it keeps
 
@@ -92,21 +93,17 @@ tools and no memory of the person's life. It quotes the script from
 ## Untrusted content
 
 A script is someone else's writing, and an uploaded PDF or a fetched doc is
-untrusted input: parsed in the app's sandboxed service, rendered as text
-only, and her MCP entry is `untrusted: true`, so it reaches her model inside
-the fence. The Google Docs fetch takes only the document's id from the link
-and builds the address itself; redirects are followed only to Google's
-document hosts over https. The unit reaches the internet for it; private
-IPv4, the tailnet, link-local, multicast and NAT64 stay denied (a LAN
-device's public IPv6 address isn't).
+untrusted input: parsed into text, rendered as text only, and her MCP entry
+is `untrusted: true`, so it reaches her model inside the fence. The Google
+Docs fetch takes only the document's id from the link and builds the
+address itself; redirects are followed only to Google's document hosts over
+https.
 
-**The trade-off, from the security review (2026-11-05):** with `IPAddressDeny=any`
-even a compromised Lines couldn't reach out. Now a memory bug in MuPDF,
-triggered by a crafted PDF, could send what Lines holds to the internet:
-scripts, scores and its own keys. They guard nothing but Lines (its own
-database, and the web key and token Serafina holds anyway), and nothing in
-it is personal, so it's accepted. Parsing in a separate process with no
-network would close it (TODO).
+Lines runs as danring, so a memory bug in MuPDF triggered by a crafted PDF
+would reach what danring can: the same exposure Serafina already has, since
+she parses uploaded PDFs with the same library as the same user. That's the
+light-app trade-off (APPS.md), accepted because nothing in Lines is
+personal.
 
 ## Not doing (yet)
 

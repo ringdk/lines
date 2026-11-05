@@ -1,4 +1,4 @@
-# /etc/systemd/system/lines-backup.timer
+# ~/.config/systemd/user/lines-backup.timer (linked from the checkout)
 [Unit]
 Description=Lines: hourly encrypted copy of the database
 

@@ -1,26 +1,19 @@
 #!/bin/sh
-# lines-update: make /opt/lines match your checkout's main, rebuild
-# it and restart Lines. A light app's update script, from Serafina's app
+# lines-update: build what's checked out in ~/workspace/lines and
+# restart Lines. A light app's update script, from Serafina's app
 # template (serafina/templates/app; serafina/docs/APPS.md, "Light apps").
-# Installed in ~/.local/bin, and run as you:
+# Run it from the checkout, as you:
 #
-#   cd ~/workspace/lines && git pull             # as you, from GitHub
-#   ~/.local/bin/lines-update                    # no sudo, no signing key
+#   git -C ~/workspace/lines pull --ff-only && ~/workspace/lines/deploy/lines-update
 #
-# A light app keeps nothing personal, so its code is yours: /opt/lines
-# belongs to danring and this script never runs as root, so a commit can't
-# get anything run as root either. What keeps Serafina safe from the app
-# doesn't change: it runs as its own user in its hardened unit, can't write
-# its own code, and reaches nothing it isn't allowed to.
+# A light app keeps nothing personal, so it runs as you, from this checkout,
+# under your own systemd: no system user, no signing key, no sudo. The pull
+# before it is yours; this builds main as it is and restarts the service.
 set -eu
 
-DEST=/opt/lines
-SRC=/home/danring/workspace/lines
-LOCK=/home/danring/.cache/lines-update.lock
+APP="$HOME/workspace/lines"
+LOCK="$HOME/.cache/lines-update.lock"
 UV=/usr/local/bin/uv
-# Its Python lives here, readable by the service, rather than in your home.
-PYTHONS=/opt/lines-python
-BIN="$DEST/.venv/bin/lines"
 # this app's own: the pyproject extras it installs, by name, such as "embeddings"
 EXTRAS=""
 # end of this app's own
@@ -31,13 +24,9 @@ case "$*" in
 esac
 
 if [ "$(id -u)" -eq 0 ]; then
-    echo "lines-update: run it as yourself, not with sudo: a light app is never built as root" >&2
+    echo "lines-update: run it as yourself: a light app is yours, never root's" >&2
     exit 1
 fi
-
-# The service reads what this writes.
-umask 022
-cd /
 
 mkdir -p "${LOCK%/*}"
 exec 9>"$LOCK"
@@ -45,46 +34,17 @@ flock -n 9 || { echo "lines-update: another update is running" >&2; exit 1; }
 
 note() { logger -t lines-update "$*" 2>/dev/null || true; }
 
-if [ ! -d "$DEST" ] || [ ! -w "$DEST" ]; then
-    echo "lines-update: $DEST isn't there for you to write; docs/deploy-astarte.md, step 1, makes it" >&2
+cd "$APP"
+# What runs is main as pulled, never a branch or an edit in passing.
+branch=$(git symbolic-ref --quiet --short HEAD || echo "(detached)")
+if [ "$branch" != main ]; then
+    echo "lines-update: $APP is on $branch; it deploys only main" >&2
     exit 1
 fi
-
-if [ ! -d "$DEST/.git" ]; then
-    if [ -n "$(ls -A "$DEST")" ]; then
-        echo "lines-update: $DEST has something in it but no checkout; not cloning over it" >&2
-        exit 1
-    fi
-    git clone --quiet --no-local --branch main "$SRC" "$DEST"
-    echo "Cloned $(git -C "$DEST" log --oneline -1)"
-    note "cloned $(git -C "$DEST" rev-parse --short HEAD)"
-else
-    # The deployed copy is main as it was, never something edited in place.
-    if [ -n "$(git -C "$DEST" status --porcelain --untracked-files=no)" ]; then
-        echo "lines-update: $DEST has changes made by hand; not deploying over them" >&2
-        git -C "$DEST" status --short --untracked-files=no >&2
-        exit 1
-    fi
-    git -C "$DEST" fetch --quiet origin main
-    target=$(git -C "$DEST" rev-parse --verify origin/main^{commit})
-    if [ -z "$(git -C "$DEST" log --oneline "HEAD..$target")" ]; then
-        if [ -x "$BIN" ] && [ -f "$DEST/frontend/dist/index.html" ]; then
-            echo "Already up to date: $(git -C "$DEST" log --oneline -1)"
-            exit 0
-        fi
-        echo "Code is current but its build is missing; rebuilding it."
-    else
-        echo "Arriving:"
-        git -C "$DEST" log --oneline "HEAD..$target"
-        from=$(git -C "$DEST" rev-parse --short HEAD)
-        # Forward only: main rewritten underneath is refused, not deployed.
-        if ! git -C "$DEST" merge --quiet --ff-only "$target"; then
-            echo "lines-update: main no longer follows what's deployed; not deploying" >&2
-            note "refused $(git -C "$DEST" rev-parse --short "$target"): not a fast-forward"
-            exit 1
-        fi
-        note "deployed $from..$(git -C "$DEST" rev-parse --short HEAD)"
-    fi
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+    echo "lines-update: $APP has changes that aren't committed; not deploying them" >&2
+    git status --short --untracked-files=no >&2
+    exit 1
 fi
 
 # Names only: nothing but `--extra NAME` reaches uv.
@@ -96,46 +56,28 @@ for extra in $EXTRAS; do
     extra_args="$extra_args --extra $extra"
 done
 
-cd "$DEST"
-UV_PYTHON_INSTALL_DIR="$PYTHONS" UV_PYTHON_PREFERENCE=only-managed \
-    "$UV" sync --quiet --frozen --no-dev $extra_args --python 3.12
-chmod -R a+rX "$PYTHONS" "$DEST/.venv"
-
-# Built in a throwaway directory with npm's install scripts off, and swapped
-# in whole, so the running app never serves half a build.
-build=$(mktemp -d /var/tmp/lines-build.XXXXXX)
-trap 'rm -rf "$build"' EXIT
-cp -R "$DEST/frontend/." "$build/"
-rm -rf "$build/node_modules" "$build/dist"
-(cd "$build" && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error && npm run --silent build)
-rm -rf "$DEST/frontend/dist.new"
-cp -R "$build/dist" "$DEST/frontend/dist.new"
-# Only plain files and directories are served: a link left by the build could
-# point the app at something of its own it shouldn't hand out.
-if [ -L "$DEST/frontend/dist.new" ] || [ ! -f "$DEST/frontend/dist.new/index.html" ] ||
-    [ -n "$(find "$DEST/frontend/dist.new" ! -type f ! -type d -print -quit)" ]; then
-    rm -rf "$DEST/frontend/dist.new"
-    echo "lines-update: the frontend build left something other than plain files; not deploying it" >&2
-    note "refused a frontend build with links or special files"
+"$UV" sync --quiet --frozen --no-dev $extra_args --python 3.12
+(cd frontend && npm ci --ignore-scripts --no-audit --no-fund --loglevel=error && npm run --silent build)
+if [ ! -f frontend/dist/index.html ] || [ -n "$(find frontend/dist ! -type f ! -type d -print -quit)" ]; then
+    echo "lines-update: the frontend build left no page, or something other than plain files" >&2
     exit 1
 fi
-find "$DEST/frontend/dist.new" -type d -exec chmod 0755 {} + -o -type f -exec chmod 0644 {} +
-rm -rf "$DEST/frontend/dist"
-mv "$DEST/frontend/dist.new" "$DEST/frontend/dist"
-cd /
+note "built $(git rev-parse --short HEAD)"
 
-# Restart (the one passwordless sudo rule every app has) and wait until it
-# answers, so whatever runs next doesn't race it.
-if systemctl is-enabled --quiet lines.service 2>/dev/null; then
-    sudo -n /usr/bin/systemctl restart lines.service
+# Restart and wait until it answers, so whatever runs next doesn't race it.
+if systemctl --user is-enabled --quiet lines.service 2>/dev/null; then
+    systemctl --user daemon-reload
+    systemctl --user restart lines.service
     tries=0
     until curl -fsS --max-time 2 http://127.0.0.1:8795/health >/dev/null 2>&1; do
         tries=$((tries + 1))
         if [ "$tries" -ge 60 ]; then
-            echo "lines restarted but isn't answering; see: journalctl -u lines -n 30" >&2
+            echo "lines restarted but isn't answering; see: journalctl --user -u lines -n 30" >&2
             exit 1
         fi
         sleep 1
     done
-    echo "Restarted lines; it's answering."
+    echo "Restarted lines on $(git log --oneline -1); it's answering."
+else
+    echo "Built $(git log --oneline -1); lines.service isn't enabled yet (docs/deploy-astarte.md)."
 fi

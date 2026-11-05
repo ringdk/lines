@@ -2,8 +2,8 @@
 
 An app beside Serafina: its own repo, service, user and data, on loopback,
 reaching her only through her config. A **light app** (serafina/docs/APPS.md,
-"Light apps"): it keeps nothing personal, so it deploys from your checkout
-without a signing key. Its pages show inside her, behind her
+"Light apps"): it keeps nothing personal, so it runs as you, from your
+checkout, under your own systemd: no system user, no signing key, no sudo. Its pages show inside her, behind her
 sign-in; her model uses it through its tools. See [README.md](README.md) and
 [docs/DESIGN.md](docs/DESIGN.md). The rules are serafina/docs/APPS.md's,
 adapted here.
@@ -28,16 +28,15 @@ adapted here.
   before any schema change or bulk write; migrations are additive or
   copy-then-swap. Nothing is deleted except down a deliberate path (a person
   deleting their own).
-- **Secrets live in `secrets.age`** in the data directory (passphrase from
-  `LINES_AGE_PASSPHRASE`, a systemd credential, or a prompt), never in `.env`
-  or the environment. New secret names go in `env.template`'s list and
-  `secretfile.py`. Never log or commit one; log output is redacted.
+- **Secrets live in `secrets.age`** in the data directory, its passphrase
+  in `~/.config/lines/env` (0600, outside the repo), never in `.env` or
+  the repo. New secret names go in `env.template`'s list and
+  `secretfile.py`. Never log or commit one; log output is redacted. A light
+  app's keys guard only itself: never give it anyone else's credential.
 - **Scripts are untrusted input.** An uploaded PDF or a fetched doc is
-  parsed only inside the app's sandboxed service and rendered as text. The
-  Google Docs fetch (`gdoc.py`) builds its address from the document id
-  alone and follows redirects only to Google's document hosts over https;
-  never fetch a URL someone typed. The unit reaches the internet for it,
-  never anything private (a noted deviation in `serafina-app.toml`).
+  parsed and rendered as text only. The Google Docs fetch (`gdoc.py`) builds
+  its address from the document id alone and follows redirects only to
+  Google's document hosts over https; never fetch a URL someone typed.
 - **Never paraphrase a script.** What the page or a tool shows as a line is
   the line, exactly; the scene partner quotes `lines_read`.
 - **Who gets in.** Everything under `/ui` needs Serafina's signed identity
@@ -75,23 +74,23 @@ uv run pytest && uv run ruff check . && (cd frontend && npm run lint)
 
 ## Applying changes on astarte
 
-Lines runs as `lines.service`, its own user, from your checkout
-at `/opt/lines` ([docs/deploy-astarte.md](docs/deploy-astarte.md)).
-Deploy after every merge, once `main` is pushed:
+Lines runs as you, as the user unit `lines.service`, from
+`~/workspace/lines` on `main`
+([docs/deploy-astarte.md](docs/deploy-astarte.md)). Deploy after every
+merge, once `main` is pushed:
 
 ```
-ssh danring@astarte.local 'git -C ~/workspace/lines pull --ff-only --quiet && ~/.local/bin/lines-update'
+ssh danring@astarte.local 'git -C ~/workspace/lines pull --ff-only --quiet && ~/workspace/lines/deploy/lines-update'
 ```
 
-It runs as danring, never with sudo, and deploys `main` forward only. If it
-refuses (main rewritten, or changes made by hand in `/opt/lines`), stop
-and tell Dan; don't work around it. Never make `/opt/lines` writable by
-the `lines` user, never run the update as root, never widen the sudoers
-rule past the restart. When `deploy/lines-update` changes, copy it to
-`~/.local/bin` again. `lines-admin`, the sudoers drop-in and the
-systemd units reach astarte only when Dan reinstalls them with sudo: say so
-whenever one changes. A
-change to the skill needs Serafina's reload (`scripts/reload.sh` in her
+It builds what's checked out and restarts the unit; it refuses a branch
+other than `main` or changes that aren't committed, so astarte's checkout is
+for deploying, not for working in. If it refuses, stop and tell Dan; don't
+work around it. Nothing here needs sudo, and nothing should: never give it
+a system user, a sudoers rule or a root-owned piece (that's a sealed app,
+APPS.md). The units are linked from the checkout, so a pull brings their
+changes and the update script's `daemon-reload` applies them. A change to the
+skill or the persona needs Serafina's reload (`scripts/reload.sh` in her
 checkout).
 
 ## The template

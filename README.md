@@ -6,7 +6,8 @@ play, and Lines reads the other parts: it gives each cue, takes your line
 (typed, first letters, or tapped from suggestions that get harder as you
 learn it), and shows what you got wrong. The scene partner, a persona of its
 own in Serafina's panel beside it, moves the rehearsal and coaches you. A
-light app: nothing personal in it, deployed with no signing key. Made from
+light app: nothing personal in it, so it runs as you under a systemd user
+unit, with no system user and no sudo. Made from
 her app template; [docs/DESIGN.md](docs/DESIGN.md) is how it works.
 
 ```mermaid
@@ -35,7 +36,7 @@ flowchart LR
 | `src/lines/coach.py` | Scores, levels and the suggestion chips' decoys |
 | `frontend/` | The pages, in her theme: scripts, rehearse, script, progress, fix |
 | `integration/serafina/` | The skill, the scene partner persona, her config entries |
-| `deploy/` | The unit, backups, deploys, admin |
+| `deploy/` | The user units, backups, the update script, the settings file's template |
 | `docs/` | Design note, deploy steps, changelog, what's new, TODO |
 
 ## Running it locally

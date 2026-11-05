@@ -29,4 +29,3 @@ personas = ["scene-partner"]
 # Template files this repo differs from on purpose: "template path" = "why".
 # `check` shows the reason instead of the difference (--all shows both).
 [deviations]
-"deploy/lines.service" = "reaches the internet to fetch Google Docs shared by link: IPAddressDeny lists the private ranges, the tailnet, link-local, multicast and NAT64 instead of any"

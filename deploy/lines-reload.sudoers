@@ -1,4 +1,0 @@
-# /etc/sudoers.d/lines-reload: restart only, as every app beside Serafina
-# has it. Restarting can't read anything, so it's safe for
-# Claude Code (and anything else running as danring) to do.
-danring ALL=(root) NOPASSWD: /usr/bin/systemctl restart lines.service
