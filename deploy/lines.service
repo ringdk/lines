@@ -36,8 +36,12 @@ StateDirectoryMode=0700
 UMask=0077
 
 RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
-IPAddressDeny=any
+# Lines fetches Google Docs shared by link, so it reaches the internet, but
+# never this network, the tailnet, link-local or anything private. (An
+# address both lists name is allowed: localhost.) DNS is resolved's, on
+# localhost.
 IPAddressAllow=localhost
+IPAddressDeny=link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7
 SocketBindAllow=tcp:8794
 SocketBindDeny=any
 

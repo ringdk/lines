@@ -6,12 +6,13 @@ hers: nothing in her code names it (serafina/docs/APPS.md, rule 10).
 | | |
 |---|---|
 | `lines.md` | The skill: when to use the tools, and how. Loaded through `skill_dirs`. |
+| `scene-partner.persona.md` | The scene partner (her §50.12): the persona her panel beside Lines starts with. |
 
-A persona is optional, and only for an app where a character fits beside it
-(her §58.3); most apps have none. If this one does, put `<id>.persona.md` here
-(her §50.12), list it in `serafina-app.toml` (`personas = ["<id>"]`) and add
-`personas: [<id>]` to the `apps:` entry below: her chat panel beside the app
-then starts with it.
+The scene partner is Lines' own (her §58.3): offered in the panel beside
+Lines, never in a chat anywhere else. It's listed in `serafina-app.toml`
+(`personas = ["scene-partner"]`) and on the `apps:` entry below. It knows
+nothing of the person's life (`memory_scope: none`) and can use only the
+`lines_*` tools.
 
 ## Wiring it up
 
@@ -27,8 +28,9 @@ apps:
     title: Lines
     upstream: http://127.0.0.1:8794/ui
     secret: LINES_APP_KEY
-    icon: app                     # one of the names her apps row draws (§52)
+    icon: drama                   # one of the names her apps row draws (§52)
     users: [ringdk@gmail.com]
+    personas: [scene-partner]     # her panel beside Lines starts with it (§58.3)
 
 # Its tools, with her bearer token and who each call is for.
 mcp_servers:

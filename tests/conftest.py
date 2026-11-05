@@ -22,7 +22,7 @@ DB_KEY = "d" * 64
 DAN = "dan@example.com"
 KATE = "kate@example.com"
 # A page's API a signed GET for DAN may read, for the gate tests.
-PAGE = "/ui/api/notes"
+PAGE = "/ui/api/scripts"
 
 
 @pytest.fixture

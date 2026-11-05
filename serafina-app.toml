@@ -20,7 +20,7 @@ users = ["ringdk@gmail.com"]
 # Optional, and only where one fits: personas from integration/serafina
 # (<id>.persona.md) that the chat panel beside this app offers, the first
 # its default. Most apps offer none.
-# personas = ["sample-guide"]
+personas = ["scene-partner"]
 
 # Template files this repo keeps somewhere else: "template path" = "path here".
 # A directory maps everything under it.
@@ -29,3 +29,4 @@ users = ["ringdk@gmail.com"]
 # Template files this repo differs from on purpose: "template path" = "why".
 # `check` shows the reason instead of the difference (--all shows both).
 [deviations]
+"deploy/lines.service" = "reaches the internet (never the LAN, the tailnet or anything private) to fetch Google Docs shared by link: IPAddressDeny lists the private ranges instead of any"
