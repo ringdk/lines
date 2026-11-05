@@ -1,7 +1,13 @@
 # Lines
 
-An app beside Serafina (serafina/docs/APPS.md): your notes, on a page inside
-her and through her tools. Made from her app template.
+An app beside Serafina for learning lines (serafina/docs/APPS.md). Add a
+script (a PDF, pasted text, or a Google Doc shared by link), say who you
+play, and Lines reads the other parts: it gives each cue, takes your line
+(typed, first letters, or tapped from suggestions that get harder as you
+learn it), and shows what you got wrong. The scene partner, a persona of its
+own in Serafina's panel beside it, moves the rehearsal and coaches you. A
+light app: nothing personal in it, deployed with no signing key. Made from
+her app template; [docs/DESIGN.md](docs/DESIGN.md) is how it works.
 
 ```mermaid
 flowchart LR
@@ -9,6 +15,7 @@ flowchart LR
   serafina -->|"/api/apps/lines/… → /ui, signed identity"| app["lines :8794 (loopback)"]
   serafina -->|"MCP → /mcp, bearer token + _serafina"| app
   app --> db[("lines.db, SQLCipher")]
+  app -.->|"a doc shared by link, as PDF (https, Google's hosts only)"| google["docs.google.com"]
   app -.->|hourly, encrypted| backup[("/mnt/media/lines-backup")]
 ```
 
@@ -20,10 +27,14 @@ flowchart LR
 | `src/lines/secretfile.py` | `secrets.age` |
 | `src/lines/db.py` | The encrypted database file and its backups |
 | `src/lines/server.py` | The listener, the pages' API, the CSP |
-| `src/lines/mcp.py` | The tools |
-| `src/lines/notes.py` | The sample's data (replace it) |
-| `frontend/` | The pages, in her theme |
-| `integration/serafina/` | The skill and her config entries |
+| `src/lines/mcp.py` | The tools the scene partner uses |
+| `src/lines/parse.py` | A script (PDF rows or text) into lines, directions and headings |
+| `src/lines/gdoc.py` | A Google Doc shared by link, fetched as a PDF |
+| `src/lines/store.py` | Scripts, lines, scores, and runs (cues, attempts, jumps, loops, drills) |
+| `src/lines/grade.py` | An attempt, word by word: ok, minor, wrong, the rest |
+| `src/lines/coach.py` | Scores, levels and the suggestion chips' decoys |
+| `frontend/` | The pages, in her theme: scripts, rehearse, script, progress, fix |
+| `integration/serafina/` | The skill, the scene partner persona, her config entries |
 | `deploy/` | The unit, backups, deploys, admin |
 | `docs/` | Design note, deploy steps, changelog, what's new, TODO |
 

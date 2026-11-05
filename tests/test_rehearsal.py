@@ -57,7 +57,10 @@ def test_an_attempt_is_graded_and_the_run_moves_on(client):
     assert words[:4] == [("The", "ok"), ("bus", "ok"), ("didn't", "ok"), ("come", "missed")]
     assert 0 < out["line"]["score"] < 1
     view = out["view"]
-    assert lines_of(view) == [(None, "(She folds her arms.)"), ("Maeve", "Twenty minutes. That's what you said last week.")]
+    assert lines_of(view) == [
+        (None, "(She folds her arms.)"),
+        ("Maeve", "Twenty minutes. That's what you said last week."),
+    ]
     assert view["prompt"]["interrupted"] is True  # "It's true this time—"
     # The same line again is out of date.
     again = post(client, f"/ui/api/scripts/{sid}/run/attempt", {"line_id": prompt["id"], "text": "x"})
@@ -78,7 +81,8 @@ def test_to_the_end_and_back_to_the_top(client):
     for _ in range(3):
         view = get(client, f"/ui/api/scripts/{sid}/run").json()
         line = " ".join(view["prompt"]["words"])
-        view = post(client, f"/ui/api/scripts/{sid}/run/attempt", {"line_id": view["prompt"]["id"], "text": line}).json()
+        body = {"line_id": view["prompt"]["id"], "text": line}
+        view = post(client, f"/ui/api/scripts/{sid}/run/attempt", body).json()
     assert view["view"]["end"] and lines_of(view["view"]) == [("Maeve", "You always do.")]
     top = post(client, f"/ui/api/scripts/{sid}/run/jump", {"to": "top"}).json()
     assert lines_of(top) == [("Maeve", "You're late again.")]

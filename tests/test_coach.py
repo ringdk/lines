@@ -51,3 +51,11 @@ def test_a_score_moves_toward_each_attempt_and_fades_slowly():
 def test_levels_follow_the_score():
     assert [coach.level_for(s) for s in (0.0, 0.35, 0.55, 0.75, 0.9)] == [1, 2, 3, 4, 5]
     assert set(coach.LEVELS) == {1, 2, 3, 4, 5}
+
+
+def test_a_name_keeps_its_capital_as_a_decoy():
+    lines = ["I know, Eavanna.", "Eavanna rings him.", "Tell him, David."]
+    proper = coach.proper_nouns(lines)
+    assert proper == {"eavanna", "david"}
+    options = coach.decoys("tell him now", {"eavanna": 3, "david": 2, "talk": 1}, seed="x", proper=proper)
+    assert all(o[0].isupper() for o in options[0]["near"] + options[0]["far"] if o.lower() in proper)

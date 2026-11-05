@@ -32,6 +32,14 @@ adapted here.
   `LINES_AGE_PASSPHRASE`, a systemd credential, or a prompt), never in `.env`
   or the environment. New secret names go in `env.template`'s list and
   `secretfile.py`. Never log or commit one; log output is redacted.
+- **Scripts are untrusted input.** An uploaded PDF or a fetched doc is
+  parsed only inside the app's sandboxed service and rendered as text. The
+  Google Docs fetch (`gdoc.py`) builds its address from the document id
+  alone and follows redirects only to Google's document hosts over https;
+  never fetch a URL someone typed. The unit reaches the internet for it,
+  never anything private (a noted deviation in `serafina-app.toml`).
+- **Never paraphrase a script.** What the page or a tool shows as a line is
+  the line, exactly; the scene partner quotes `lines_read`.
 - **Who gets in.** Everything under `/ui` needs Serafina's signed identity
   (`auth.py`), `/mcp` her bearer token plus `_serafina.user_email` on every
   call, both held to `LINES_USERS`. Nothing else answers but `/health`.

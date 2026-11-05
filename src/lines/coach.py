@@ -15,7 +15,7 @@ import random
 from collections.abc import Iterable
 from datetime import UTC, datetime
 
-from lines.grade import tokens
+from lines.grade import WORD, tokens
 
 LEVELS = {
     1: "Just starting",
@@ -80,7 +80,9 @@ def level_for(score: float) -> int:
     return 1
 
 
-def decoys(line: str, vocabulary: dict[str, int], seed: str) -> list[dict[str, list[str]]]:
+def decoys(
+    line: str, vocabulary: dict[str, int], seed: str, proper: set[str] | None = None
+) -> list[dict[str, list[str]]]:
     """For each word of the line: `near`, three wrong words that look like
     it (same first letter, a similar length), and `far`, three that don't.
     The same seed gives the same choices, so a page reload doesn't reshuffle."""
@@ -104,18 +106,36 @@ def decoys(line: str, vocabulary: dict[str, int], seed: str) -> list[dict[str, l
             chosen_near += [w for w in far if w not in chosen_near][: 3 - len(chosen_near)]
         chosen_far = [w for w in far if w not in chosen_near][:3]
         out.append(
-            {"near": [_like(word.text, w) for w in chosen_near], "far": [_like(word.text, w) for w in chosen_far]}
+            {
+                "near": [_like(word.text, w, proper) for w in chosen_near],
+                "far": [_like(word.text, w, proper) for w in chosen_far],
+            }
         )
     return out
 
 
-def _like(model: str, word: str) -> str:
-    """A decoy in the right word's case, so the case doesn't give it away."""
+def _like(model: str, word: str, proper: set[str] | None = None) -> str:
+    """A decoy in the right word's case, so the case doesn't give it away; a
+    name keeps its capital."""
     if model.isupper() and len(model) > 1:
         return word.upper()
-    if model[:1].isupper():
+    if model[:1].isupper() or (proper and word in proper):
         return word[:1].upper() + word[1:]
     return word
+
+
+def proper_nouns(lines: Iterable[str]) -> set[str]:
+    """Words written with a capital in the middle of a sentence: names."""
+    found: set[str] = set()
+    for line in lines:
+        end = 0
+        for i, m in enumerate(WORD.finditer(line)):
+            before = line[end : m.start()]
+            end = m.end()
+            text = m.group(0)
+            if i and text[:1].isupper() and not any(c in before for c in ".!?:") and text.lower() != "i":
+                found.add(text.replace("’", "'").lower())
+    return found
 
 
 def vocabulary(lines: Iterable[str]) -> dict[str, int]:

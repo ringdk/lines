@@ -534,14 +534,16 @@ class Store:
                 els: list[dict[str, Any]], mine: set[str]) -> dict[str, Any]:  # fmt: skip
         level = self._level(s, e, mastery, overall)
         m = mastery.get(e["id"])
-        vocab = coach.vocabulary(x["text"] for x in els if x["kind"] == "line")
+        spoken = [x["text"] for x in els if x["kind"] == "line"]
+        vocab = coach.vocabulary(spoken)
         return {
             "id": e["id"],
             "pos": e["pos"],
             "character": e["character"],
             "note": e["note"],
             "words": [t.text for t in tokens(e["text"])],
-            "decoys": coach.decoys(e["text"], vocab, seed=f"{e['id']}:{m['attempts'] if m else 0}"),
+            "decoys": coach.decoys(e["text"], vocab, seed=f"{e['id']}:{m['attempts'] if m else 0}",
+                                   proper=coach.proper_nouns(spoken)),  # fmt: skip
             "level": level,
             "label": coach.LEVELS[level],
             "score": round(coach.effective(m["score"], m["last_seen"]), 3) if m else None,
