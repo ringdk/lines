@@ -6,11 +6,11 @@ import react from '@vitejs/plugin-react'
 // every URL in the app is relative (base './', fetch('api/…')).
 //
 // For frontend work, `npm run dev` serves on :5174 and stands in for
-// Serafina's app proxy: it forwards api/ to the app's /ui/ on :8794 and signs
+// Serafina's app proxy: it forwards api/ to the app's /ui/ on :8795 and signs
 // each request the way she does. Give it the app's LINES_APP_KEY and a
 // LINES_USERS email:
 //   LINES_DEV_APP_KEY=… LINES_DEV_USER=you@example.com npm run dev
-const backend = process.env.LINES_BACKEND ?? 'http://127.0.0.1:8794'
+const backend = process.env.LINES_BACKEND ?? 'http://127.0.0.1:8795'
 const devKey = process.env.LINES_DEV_APP_KEY
 const devUser = (process.env.LINES_DEV_USER ?? '').toLowerCase()
 

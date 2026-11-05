@@ -12,7 +12,7 @@ her app template; [docs/DESIGN.md](docs/DESIGN.md) is how it works.
 ```mermaid
 flowchart LR
   phone["phone / browser"] -->|her origin, her sign-in| serafina["Serafina"]
-  serafina -->|"/api/apps/lines/… → /ui, signed identity"| app["lines :8794 (loopback)"]
+  serafina -->|"/api/apps/lines/… → /ui, signed identity"| app["lines :8795 (loopback)"]
   serafina -->|"MCP → /mcp, bearer token + _serafina"| app
   app --> db[("lines.db, SQLCipher")]
   app -.->|"a doc shared by link, as PDF (https, Google's hosts only)"| google["docs.google.com"]
@@ -45,7 +45,7 @@ uv sync
 export LINES_DATA_DIR=data LINES_USERS=you@example.com LINES_AGE_PASSPHRASE=dev-only
 uv run lines secrets init
 uv run lines secrets web-key | tail -1      # for the dev proxy below
-uv run lines serve                          # 127.0.0.1:8794
+uv run lines serve                          # 127.0.0.1:8795
 
 cd frontend && npm install
 LINES_DEV_APP_KEY=<that key> LINES_DEV_USER=you@example.com npm run dev   # :5174, signs like Serafina
@@ -60,7 +60,7 @@ Made from Serafina's app template (`serafina/templates/app`; the rules are
 her `docs/APPS.md`). From her checkout:
 
 ```bash
-uv run python scripts/app_template.py new ../lines --name lines --port 8794   # how this repo began
+uv run python scripts/app_template.py new ../lines --name lines --port 8795   # how this repo began
 uv run python scripts/app_template.py check ../lines       # where it differs from the template now (--diff, --all)
 uv run python scripts/add_app.py /opt/lines/serafina-app.toml   # her config entries (docs/deploy-astarte.md, step 2)
 ```

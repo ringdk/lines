@@ -9,7 +9,7 @@ package = "lines"
 env = "LINES_"
 title = "Lines"
 tools = "lines_"
-port = 8794
+port = 8795
 icon = "drama"
 # How it's deployed (serafina/docs/APPS.md): "sealed", signed commits into a
 # root-owned checkout, for anything personal; or "light", from your own

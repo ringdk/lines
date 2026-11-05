@@ -6,11 +6,11 @@
 # reach anything it isn't allowed to. Its keys guard only the app itself:
 # danring writes the code that reads them.
 #
-# One listener, loopback :8794, for Serafina only: her app proxy (/ui, signed
+# One listener, loopback :8795, for Serafina only: her app proxy (/ui, signed
 # identity) and her MCP client (/mcp, bearer token). Whatever it calls is on
 # this box too; its README says what.
 [Unit]
-Description=Lines: an app beside Serafina (loopback :8794)
+Description=Lines: an app beside Serafina (loopback :8795)
 After=network-online.target
 Wants=network-online.target
 
@@ -43,7 +43,7 @@ RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
 # name is allowed: localhost.) DNS is resolved's, on localhost.
 IPAddressAllow=localhost
 IPAddressDeny=link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7 64:ff9b::/96
-SocketBindAllow=tcp:8794
+SocketBindAllow=tcp:8795
 SocketBindDeny=any
 
 ProtectSystem=strict

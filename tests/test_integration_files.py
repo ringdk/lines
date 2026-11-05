@@ -56,9 +56,9 @@ def test_the_readme_has_her_three_config_entries():
     readme = (INTEGRATION / "README.md").read_text(encoding="utf-8")
     for line in [
         "  - name: lines",
-        "    upstream: http://127.0.0.1:8794/ui",
+        "    upstream: http://127.0.0.1:8795/ui",
         "    secret: LINES_APP_KEY",
-        "    url: http://127.0.0.1:8794/mcp",
+        "    url: http://127.0.0.1:8795/mcp",
         "    auth: bearer",
         "    token_secret: LINES_MCP_TOKEN",
         "    pass_context: true",

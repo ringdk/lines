@@ -200,7 +200,7 @@ def test_the_unit_runs_as_its_own_user_on_loopback_hardened():
         "StateDirectoryMode=0700",
         "LoadCredential=passphrase:/etc/lines/passphrase",
         "IPAddressAllow=localhost",
-        "SocketBindAllow=tcp:8794",
+        "SocketBindAllow=tcp:8795",
         "ProtectSystem=strict",
         "ProtectHome=yes",
         "NoNewPrivileges=yes",

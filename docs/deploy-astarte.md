@@ -12,7 +12,7 @@ tools only with her token.
 | Code | `/opt/lines`, yours, deployed from `~/workspace/lines` by `~/.local/bin/lines-update` |
 | Data | `/var/lib/lines` (0700): the database and `secrets.age` |
 | Passphrase | `/etc/lines/passphrase`, root only, handed to the units by systemd |
-| Listens | `127.0.0.1:8794`: `/ui` for her signed identity, `/mcp` for her token |
+| Listens | `127.0.0.1:8795`: `/ui` for her signed identity, `/mcp` for her token |
 | Backups | hourly, encrypted, to `/mnt/media/lines-backup` (`lines-backup.timer`) |
 
 Everything below is copy and paste, in order, on astarte as danring.
@@ -59,7 +59,7 @@ cd ~/workspace/serafina
 cd ~/workspace/lines
 
 sudo systemctl enable --now lines.service lines-backup.timer
-curl -s http://127.0.0.1:8794/health                  # {"ok":true}
+curl -s http://127.0.0.1:8795/health                  # {"ok":true}
 ```
 
 ## 2. Serafina's config (straight after step 1)

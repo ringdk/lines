@@ -129,7 +129,7 @@ cd /
 if systemctl is-enabled --quiet lines.service 2>/dev/null; then
     sudo -n /usr/bin/systemctl restart lines.service
     tries=0
-    until curl -fsS --max-time 2 http://127.0.0.1:8794/health >/dev/null 2>&1; do
+    until curl -fsS --max-time 2 http://127.0.0.1:8795/health >/dev/null 2>&1; do
         tries=$((tries + 1))
         if [ "$tries" -ge 60 ]; then
             echo "lines restarted but isn't answering; see: journalctl -u lines -n 30" >&2

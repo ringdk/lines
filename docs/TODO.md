@@ -5,7 +5,7 @@ Kept current: tick what's done, add what's found.
 ## Now
 
 - [x] docs/DESIGN.md, agreed with Dan (2026-11-05).
-- [x] Port 8794, icon `drama` (Serafina r280).
+- [x] Port 8795, icon `drama` (Serafina r280).
 - [ ] The install on astarte: docs/deploy-astarte.md (Dan's sudo steps), then her config.
 - [x] `/security-review` on the branch before the first merge (2026-11-05: nothing exploitable; two hardening notes below).
 

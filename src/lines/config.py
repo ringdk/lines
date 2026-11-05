@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 # Both doors are Serafina's, so it only ever listens on loopback; this isn't
 # a setting on purpose.
 HOST = "127.0.0.1"
-DEFAULT_PORT = 8794
+DEFAULT_PORT = 8795
 
 
 class Config(BaseModel):

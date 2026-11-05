@@ -26,7 +26,7 @@ the commands that add these).
 apps:
   - name: lines
     title: Lines
-    upstream: http://127.0.0.1:8794/ui
+    upstream: http://127.0.0.1:8795/ui
     secret: LINES_APP_KEY
     icon: drama                   # one of the names her apps row draws (§52)
     users: [ringdk@gmail.com]
@@ -35,7 +35,7 @@ apps:
 # Its tools, with her bearer token and who each call is for.
 mcp_servers:
   - name: lines
-    url: http://127.0.0.1:8794/mcp
+    url: http://127.0.0.1:8795/mcp
     auth: bearer
     token_secret: LINES_MCP_TOKEN
     tool_prefix: ""               # the tools already name themselves lines_*
